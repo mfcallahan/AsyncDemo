@@ -1,8 +1,6 @@
-using System;
+﻿using System;
 using System.Diagnostics;
-using System.Reflection;
 using System.Threading.Tasks;
-using static AsyncDemo.SampleDataLayer;
 
 namespace AsyncDemo
 {
@@ -12,64 +10,65 @@ namespace AsyncDemo
         private const int ApiWaitTimeSeconds = 4;
         private const int MethodWaitTimeSeconds = 3;
 
-        public static async Task Main()
+        static async Task Main()
         {
+            Console.WriteLine("Synchronous demo start.");
+
             Stopwatch s = new Stopwatch();
-
-            // RunDemoSynchronous() will call three methods in SampleDataLayer synchronously
             s.Start();
-            RunDemoSynchronous();
+            // RunDemoSynchronous() will call methods in SampleDataLayer synchronously
+            RunDemoSynchronous(new SampleDataLayer());
             s.Stop();
 
-            Console.WriteLine($"RunDemoSynchronous() complete. Elapsed seconds: {s.Elapsed.TotalSeconds}" + Environment.NewLine);
+            Console.WriteLine($"Synchronous demo complete. Elapsed seconds: {s.Elapsed.TotalSeconds}" + Environment.NewLine);
 
-            // RunDemoAsync() will call three methods in SampleDataLayer asynchronously
+            Console.WriteLine("Aynchronous demo start.");
+
             s.Restart();
-            await RunDemoAsync().ConfigureAwait(false);
+            // RunDemoAsync() will call methods in SampleDataLayer asynchronously
+            await RunDemoAsync(new SampleDataLayer()).ConfigureAwait(false);
             s.Stop();
-            Console.WriteLine($"RunDemoAsync() complete. Elapsed seconds: {s.Elapsed.TotalSeconds}" + s.Elapsed.TotalSeconds + Environment.NewLine);
+
+            Console.WriteLine($"Aynchronous demo complete. Elapsed seconds: {s.Elapsed.TotalSeconds}" + Environment.NewLine);
 
             Console.WriteLine("Demo complete.");
             Console.ReadLine();
+
+            Environment.Exit(1);
         }
 
-        private static void RunDemoSynchronous()
+        private static void RunDemoSynchronous(SampleDataLayer sampleDataLayer)
         {
-            string thisMethodName = MethodBase.GetCurrentMethod().Name;
-            Console.WriteLine($"{thisMethodName} start.");
-
             // Execute long and short running methods synchronously
-            string dataA = GetDelayedApiResponse(ApiWaitTimeSeconds);
-            string dataB = SimulateLongProcess(MethodWaitTimeSeconds);
-            int dataC = Foo();
+            string dataA = sampleDataLayer.GetDelayedApiResponse(ApiWaitTimeSeconds);
+            string dataB = sampleDataLayer.SimulateLongProcess(MethodWaitTimeSeconds);
+            int dataC = sampleDataLayer.ShortRunningCalculation();
 
             SampleData sample = new SampleData(dataA, dataB, dataC);
 
+            Console.WriteLine();
             Console.WriteLine("SampleData object 'sample' created:");
             Console.WriteLine("sample.A = {0}", sample.A);
             Console.WriteLine("sample.B = {0}", sample.B);
             Console.WriteLine("sample.C = {0}", sample.C);
         }
 
-        private static async Task RunDemoAsync()
+        private static async Task RunDemoAsync(SampleDataLayer sampleDataLayer)
         {
-            string thisMethodName = MethodBase.GetCurrentMethod().Name;
-            Console.WriteLine($"{thisMethodName} start.");
-
-            Stopwatch s = new Stopwatch();
-            s.Start();
-
             // Create tasks for long running asynchronous methods
-            Task<string> dataA = GetDelayedApiResponseAsync(ApiWaitTimeSeconds);
-            Task<string> dataB = SimulateLongProcessAsync(MethodWaitTimeSeconds);
+            Task<string> taskDataA = sampleDataLayer.GetDelayedApiResponseAsync(ApiWaitTimeSeconds);
+            Task<string> taskDataB = sampleDataLayer.SimulateLongProcessAsync(MethodWaitTimeSeconds);
 
             // Execute short running synchronous method
-            int dataC = Foo();
+            int dataC = sampleDataLayer.ShortRunningCalculation();
 
-            // Await the tasks
-            Console.WriteLine("Awaiting...");
-            SampleData sample = new SampleData(await dataA.ConfigureAwait(false), await dataB.ConfigureAwait(false), dataC);
+            // Await the completeion of the tasks
+            Console.WriteLine("Awaiting tasks...");
+            await Task.WhenAll(taskDataA, taskDataB).ConfigureAwait(false);
 
+            SampleData sample = new SampleData(taskDataA.Result, taskDataB.Result, dataC);
+
+            Console.WriteLine();
             Console.WriteLine($"SampleData object '{nameof(sample)}' created:");
             Console.WriteLine($"sample.A = {sample.A}");
             Console.WriteLine($"sample.B = {sample.B}");
