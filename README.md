@@ -1,3 +1,3 @@
-## AsyncDemo
+# AsyncDemo
 
-#### A simple C# console app to demonstrate asynchronous programming
+A .NET Core console app to demonstrate Task-based asynchronous programming with C#.
