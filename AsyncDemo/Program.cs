@@ -1,17 +1,18 @@
 using System;
 using System.Diagnostics;
+using System.Reflection;
 using System.Threading.Tasks;
 using static AsyncDemo.SampleDataLayer;
 
 namespace AsyncDemo
 {
-    class Program
+    public static class Program
     {
         // Wait time in seconds for SampleDataLayer methods
-        const int _apiWaitTime = 4;
-        const int _methodWaitTime = 3;
+        private const int ApiWaitTimeSeconds = 4;
+        private const int MethodWaitTimeSeconds = 3;
 
-        static async Task Main()
+        public static async Task Main()
         {
             Stopwatch s = new Stopwatch();
 
@@ -20,25 +21,26 @@ namespace AsyncDemo
             RunDemoSynchronous();
             s.Stop();
 
-            Console.WriteLine("RunDemoSynchronous() complete. Elapsed seconds: " + s.Elapsed.TotalSeconds + Environment.NewLine);
+            Console.WriteLine($"RunDemoSynchronous() complete. Elapsed seconds: {s.Elapsed.TotalSeconds}" + Environment.NewLine);
 
             // RunDemoAsync() will call three methods in SampleDataLayer asynchronously
             s.Restart();
-            await RunDemoAsync();
+            await RunDemoAsync().ConfigureAwait(false);
             s.Stop();
-            Console.WriteLine("RunDemoAsync() complete. Elapsed seconds: " + s.Elapsed.TotalSeconds + Environment.NewLine);
+            Console.WriteLine($"RunDemoAsync() complete. Elapsed seconds: {s.Elapsed.TotalSeconds}" + s.Elapsed.TotalSeconds + Environment.NewLine);
 
             Console.WriteLine("Demo complete.");
             Console.ReadLine();
         }
 
-        static void RunDemoSynchronous()
+        private static void RunDemoSynchronous()
         {
-            Console.WriteLine("RunDemoSynchronous() start.");
+            string thisMethodName = MethodBase.GetCurrentMethod().Name;
+            Console.WriteLine($"{thisMethodName} start.");
 
-            // execute long and short running methods synchronously
-            string dataA = GetDelayedApiResponse(_apiWaitTime);
-            string dataB = SimulateLongProcess(_methodWaitTime);
+            // Execute long and short running methods synchronously
+            string dataA = GetDelayedApiResponse(ApiWaitTimeSeconds);
+            string dataB = SimulateLongProcess(MethodWaitTimeSeconds);
             int dataC = Foo();
 
             SampleData sample = new SampleData(dataA, dataB, dataC);
@@ -49,28 +51,29 @@ namespace AsyncDemo
             Console.WriteLine("sample.C = {0}", sample.C);
         }
 
-        static async Task RunDemoAsync()
+        private static async Task RunDemoAsync()
         {
-            Console.WriteLine("RunDemoAsync() start.");
+            string thisMethodName = MethodBase.GetCurrentMethod().Name;
+            Console.WriteLine($"{thisMethodName} start.");
 
             Stopwatch s = new Stopwatch();
             s.Start();
 
-            // start long running asynchronous methods
-            Task<string> dataA = GetDelayedApiResponseAsync(_apiWaitTime);
-            Task<string> dataB = SimulateLongProcessAsync(_methodWaitTime);
+            // Create tasks for long running asynchronous methods
+            Task<string> dataA = GetDelayedApiResponseAsync(ApiWaitTimeSeconds);
+            Task<string> dataB = SimulateLongProcessAsync(MethodWaitTimeSeconds);
 
-            // start short running synchronous method which doesn't need to wait for dataA or dataB
+            // Execute short running synchronous method
             int dataC = Foo();
 
-            // await the tasks
+            // Await the tasks
             Console.WriteLine("Awaiting...");
-            SampleData sample = new SampleData(await dataA, await dataB, dataC);
+            SampleData sample = new SampleData(await dataA.ConfigureAwait(false), await dataB.ConfigureAwait(false), dataC);
 
-            Console.WriteLine("SampleData object 'sample' created:");
-            Console.WriteLine("sample.A = {0}", sample.A);
-            Console.WriteLine("sample.B = {0}", sample.B);
-            Console.WriteLine("sample.C = {0}", sample.C);
+            Console.WriteLine($"SampleData object '{nameof(sample)}' created:");
+            Console.WriteLine($"sample.A = {sample.A}");
+            Console.WriteLine($"sample.B = {sample.B}");
+            Console.WriteLine($"sample.C = {sample.C}");
         }
     }
 }
