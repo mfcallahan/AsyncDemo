@@ -22,14 +22,14 @@ namespace AsyncDemo
 
             Console.WriteLine($"Synchronous demo complete. Elapsed seconds: {s.Elapsed.TotalSeconds}" + Environment.NewLine);
 
-            Console.WriteLine("Aynchronous demo start.");
+            Console.WriteLine("Asynchronous demo start.");
 
             s.Restart();
             // RunDemoAsync() will call methods in SampleDataLayer asynchronously
             await RunDemoAsync(new SampleDataLayer()).ConfigureAwait(false);
             s.Stop();
 
-            Console.WriteLine($"Aynchronous demo complete. Elapsed seconds: {s.Elapsed.TotalSeconds}" + Environment.NewLine);
+            Console.WriteLine($"Asynchronous demo complete. Elapsed seconds: {s.Elapsed.TotalSeconds}" + Environment.NewLine);
 
             Console.WriteLine("Demo complete.");
             Console.ReadLine();
