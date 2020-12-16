@@ -20,7 +20,7 @@ namespace AsyncDemo
             RunDemoSynchronous(new SampleDataLayer());
             s.Stop();
 
-            Console.WriteLine($"Synchronous demo complete. Elapsed seconds: {s.Elapsed.TotalSeconds}" + Environment.NewLine);
+            Console.WriteLine($"Synchronous demo complete. Elapsed seconds: {s.Elapsed.TotalSeconds:0.00}" + Environment.NewLine);
 
             Console.WriteLine("Asynchronous demo start.");
 
@@ -29,7 +29,7 @@ namespace AsyncDemo
             await RunDemoAsync(new SampleDataLayer()).ConfigureAwait(false);
             s.Stop();
 
-            Console.WriteLine($"Asynchronous demo complete. Elapsed seconds: {s.Elapsed.TotalSeconds}" + Environment.NewLine);
+            Console.WriteLine($"Asynchronous demo complete. Elapsed seconds: {s.Elapsed.TotalSeconds:0.00}" + Environment.NewLine);
 
             Console.WriteLine("Demo complete.");
             Console.ReadLine();
